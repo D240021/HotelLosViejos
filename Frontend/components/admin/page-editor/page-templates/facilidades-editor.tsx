@@ -5,58 +5,34 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageEditor } from "../image-editor"
 import { Button } from "@/components/ui/button"
+import { Plus, Trash2, MoveUp, MoveDown } from "lucide-react"
+import { useFacilidad } from "@/hooks/use-facilidades"
+import { FacilidadBase } from "@/types/Facilidad"
 
-import { updateFacilities, registerFacilities } from "@/lib/FacilidadData"
-import { v4 as uuidv4 } from "uuid";
+interface Facilidad {
+  id: string
+  nombre: string
+  descripcion: string
+  imagen: string
+}
+
 interface FacilidadesData {
   facilidades: Facilidad[]
 }
 
-export function FacilidadesEditor({ onChange }: { onChange?: (data: FacilidadesData) => void }) {
+interface FacilidadesEditorProps {
+  initialData: FacilidadesData
+  onChange: (data: FacilidadesData) => void
+}
 
-  const { facilidades } = useFacilidad();
-  const [data, setData] = useState<FacilidadesData>({ facilidades: [] })
-  const [isSaving, setIsSaving] = useState(false)
+export function FacilidadesEditor({ initialData, onChange }: FacilidadesEditorProps) {
 
-    useEffect(() => {
-        // Asegúrate de que 'facilidades' no sea undefined o vacío antes de actualizar el estado
-        if (facilidades && facilidades.length > 0 && data.facilidades.length === 0) {
-          setData({ facilidades });
-        }
-    }, [facilidades]);
+  const {facilidades} = useFacilidad();
 
-const handleSave = async (index: number) => {
-  setIsSaving(true);
-  const facilidad = data.facilidades[index];
+  const [data, setData] = useState<FacilidadBase[]>(facilidades);
 
-  try {
-    // Si no tiene `id`, es una facilidad nueva
-    if (!facilidad.id) {
-      const newFacilidad = { ...facilidad };
-      delete newFacilidad._uuid; // No enviar _uuid al backend
-      const result = await registerFacilities(newFacilidad);
-
-      alert("Facilidad registrada con éxito");
-    } else {
-      // Tiene un ID real de base de datos => actualizar
-      await updateFacilities(facilidad);
-      alert("Cambios guardados con éxito");
-    }
-  } catch (error) {
-    console.error("Error al guardar cambios:", error);
-    alert("Error al guardar cambios");
-  }
-
-  setIsSaving(false);
-  window.location.reload();
-};
-
-
-
-
-
-const handleFacilidadChange = (index: number, field: keyof FacilidadBase, value: string) => {
-    const newFacilidades = [...data.facilidades]
+  const handleFacilidadChange = (index: number, field: keyof Facilidad, value: string) => {
+    const newFacilidades = [...data]
     newFacilidades[index] = { ...newFacilidades[index], [field]: value }
 
     const newData = { ...data, facilidades: newFacilidades }
@@ -72,42 +48,34 @@ const handleFacilidadChange = (index: number, field: keyof FacilidadBase, value:
     }
 
     const newData = {
+      ...data,
+      facilidades: [...facilidades, newFacilidad],
+    }
 
-          ...data,
-          facilidades: [...data.facilidades, newFacilidad],
-        };
-
-    setData((prev) => ({
-        ...prev,
-        facilidades: [...prev.facilidades, newFacilidad],
-      }));
-    onChange(newData)
-
+    setData(newData)
   }
 
   const handleRemoveFacilidad = (index: number) => {
-    const newFacilidades = [...data.facilidades]
+    const newFacilidades = [...facilidades]
     newFacilidades.splice(index, 1)
 
     const newData = { ...data, facilidades: newFacilidades }
     setData(newData)
-    onChange(newData)
   }
 
   const moveFacilidad = (index: number, direction: "up" | "down") => {
-    if ((direction === "up" && index === 0) || (direction === "down" && index === data.facilidades.length - 1)) {
+    if ((direction === "up" && index === 0) || (direction === "down" && index === facilidades.length - 1)) {
       return
     }
 
     const newIndex = direction === "up" ? index - 1 : index + 1
-    const newFacilidades = [...data.facilidades]
+    const newFacilidades = [...facilidades]
     const temp = newFacilidades[index]
     newFacilidades[index] = newFacilidades[newIndex]
     newFacilidades[newIndex] = temp
 
     const newData = { ...data, facilidades: newFacilidades }
     setData(newData)
-    onChange(newData)
   }
 
   return (
@@ -126,7 +94,7 @@ const handleFacilidadChange = (index: number, field: keyof FacilidadBase, value:
         </Button>
       </div>
 
-      {data.facilidades.length === 0 ? (
+      {facilidades.length === 0 ? (
         <div className="text-center py-8 border rounded-md bg-gray-50">
           <p className="text-gray-500">No hay facilidades agregadas</p>
           <Button
@@ -142,9 +110,8 @@ const handleFacilidadChange = (index: number, field: keyof FacilidadBase, value:
         </div>
       ) : (
         <div className="space-y-6">
-
-          {data.facilidades.map((facilidad, index) => (
-            <div key={facilidad.id || facilidad._uuid} className="border rounded-md p-4 relative">
+          {facilidades.map((facilidad, index) => (
+            <div key={facilidad.id} className="border rounded-md p-4 relative">
               <div className="absolute top-2 right-2 flex space-x-1">
                 <Button
                   type="button"
@@ -162,7 +129,7 @@ const handleFacilidadChange = (index: number, field: keyof FacilidadBase, value:
                   size="icon"
                   className="h-7 w-7 text-gray-500 hover:text-blue-500"
                   onClick={() => moveFacilidad(index, "down")}
-                  disabled={index === data.facilidades.length - 1}
+                  disabled={index === facilidades.length - 1}
                 >
                   <MoveDown size={16} />
                 </Button>
@@ -182,7 +149,7 @@ const handleFacilidadChange = (index: number, field: keyof FacilidadBase, value:
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la facilidad</label>
                   <Input
                     value={facilidad.titulo}
-                    onChange={(e) => handleFacilidadChange(index, "titulo", e.target.value)}
+                    onChange={(e) => handleFacilidadChange(index, "nombre", e.target.value)}
                     className="w-full"
                     placeholder="Ej: Piscina Infinita, Restaurante, Spa..."
                   />
@@ -212,9 +179,8 @@ const handleFacilidadChange = (index: number, field: keyof FacilidadBase, value:
                     <div>
                       <ImageEditor
                         compact
-
-                        currentImageUrl={facilidad.nombreImagen}
-                        onImageChange={(url) => handleFacilidadChange(index, "nombreImagen", url)}
+                        currentImageUrl={facilidad.nombreImagen || "/placeholder.svg"}
+                        onImageChange={(url) => handleFacilidadChange(index, "imagen", url)}
                       />
                     </div>
                   </div>
