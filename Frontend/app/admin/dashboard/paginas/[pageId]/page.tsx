@@ -22,7 +22,6 @@ import { HomePreview } from "@/components/admin/page-editor/page-previews/home-p
 import { SobreNosotrosPreview } from "@/components/admin/page-editor/page-previews/sobre-nosotros-preview"
 import { FacilidadesPreview } from "@/components/admin/page-editor/page-previews/facilidades-preview"
 import { ComoLlegarPreview } from "@/components/admin/page-editor/page-previews/como-llegar-preview"
-import { useContacto } from "@/hooks/use-contacto"
 
 // Actualizar los datos iniciales para la página "como-llegar"
 const paginasData = {
@@ -101,8 +100,7 @@ export default function EditarPaginaPage() {
   const router = useRouter()
   const pageId = params.pageId as string
   const [username] = useState("USUARIO")
-  const [isSaving, setIsSaving] = useState(false);
-  
+  const [isSaving, setIsSaving] = useState(false)
 
   // Verificar si la página existe
   const paginaExiste = Object.keys(paginasData).includes(pageId)
