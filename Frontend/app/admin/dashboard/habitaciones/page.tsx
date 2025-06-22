@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Hotel } from "lucide-react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminFooter } from "@/components/admin/admin-footer";
@@ -12,7 +13,7 @@ import { RoomDescriptionModal } from "@/components/admin/rooms/room-description-
 import { cn } from "@/lib/utils";
 import { useEditarHabitacion } from "@/hooks/use-admin-editar-habitacion";
 
-export default function AdministrarHabitacionesPage() {
+function HabitacionesContent() {
   const {
     username,
     showDescriptionModal,
@@ -23,7 +24,6 @@ export default function AdministrarHabitacionesPage() {
     habitacionesFiltradasPorTipo,
   } = useEditarHabitacion();
 
-  // Función para renderizar la tabla por tipo de habitación
   const renderRoomTable = (tipo: string, titulo: string) => {
     const habitacionesFiltradas = habitacionesFiltradasPorTipo(tipo);
 
@@ -121,5 +121,13 @@ export default function AdministrarHabitacionesPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function AdministrarHabitacionesPage() {
+  return (
+    <Suspense fallback={<div>Cargando habitaciones...</div>}>
+      <HabitacionesContent />
+    </Suspense>
   );
 }
