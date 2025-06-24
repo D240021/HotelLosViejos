@@ -9,7 +9,9 @@ interface FacilidadesData {
 }
 
 export function useFacilidadesEditor(onChange?: (data: FacilidadesData) => void) {
-    const { facilidades: initialFacilidades } = useFacilidad();
+    const { facilidades: initialFacilidades, fetchFacilidades } = useFacilidad();
+
+
     const [data, setData] = useState<FacilidadesData>({ facilidades: [] });
 
     // Estado unificado para el manejo de alertas
@@ -22,17 +24,15 @@ export function useFacilidadesEditor(onChange?: (data: FacilidadesData) => void)
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
     const [indexToDelete, setIndexToDelete] = useState<number | null>(null);
 
-    // Usamos un ref para saber si los datos ya se han cargado e inicializado por primera vez
-    const hasInitialized = useRef(false);
 
-    // Efecto para inicializar el estado 'data' solo una vez con los datos de 'useFacilidad'
     useEffect(() => {
-        if (initialFacilidades && initialFacilidades.length > 0 && !hasInitialized.current) {
+        if (initialFacilidades) {
             const clonedFacilidades = initialFacilidades.map(fac => ({ ...fac }));
             setData({ facilidades: clonedFacilidades });
-            hasInitialized.current = true;
         }
     }, [initialFacilidades]);
+
+
 
     // Efecto para limpiar las alertas después de un tiempo
     useEffect(() => {
@@ -60,14 +60,15 @@ export function useFacilidadesEditor(onChange?: (data: FacilidadesData) => void)
     };
 
     const handleAdd = () => {
-        const nueva: FacilidadBase = {
-            id: Date.now(), // ID temporal para la UI
+        const nueva: FacilidadBase & { _uuid: string } = {
+            id: 0,
             titulo: "",
             descripcion: "",
             nombreImagen: "/placeholder.svg?height=300&width=400",
+            _uuid: uuidv4(), // ID temporal único para React y lógica interna
         };
         notifyChange({ facilidades: [...data.facilidades, nueva] });
-        setAlert(null); // Limpiar alerta al añadir
+        setAlert(null);
     };
 
     const handleRemove = (index: number) => {
@@ -132,83 +133,68 @@ export function useFacilidadesEditor(onChange?: (data: FacilidadesData) => void)
         return null;
     };
 
-    // La función handleSave ahora procesará todas las facilidades
-    const handleSave = async () => {
-        if (!data || !data.facilidades) return;
+const handleSave = async () => {
+    if (!data || !data.facilidades) return;
 
-        // Validar todas las facilidades antes de intentar guardar
-        for (const facilidad of data.facilidades) {
-            const validationMessage = validateFacilidad(facilidad);
-            if (validationMessage) {
-                setAlert({
-                    type: "error",
-                    title: "Error de Validación",
-                    message: `Algunas facilidades tienen errores: ${validationMessage}`,
-                });
-                return; // Detener el guardado si hay un error
-            }
-        }
-
-        setIsSaving(true);
-        setAlert(null);
-
-        try {
-            const updatesPromises: Promise<FacilidadBase | void>[] = [];
-            const newFacilidadesMap = new Map<number, FacilidadBase>(); // Para mapear IDs temporales a IDs reales
-
-            for (let i = 0; i < data.facilidades.length; i++) {
-                const facilidadToSave = data.facilidades[i];
-                const isNew = typeof facilidadToSave.id !== "number";
-
-                if (isNew) {
-                    const { id: tempId, ...facilidadWithoutTempId } = facilidadToSave;
-                    updatesPromises.push(
-                        registerFacilities(facilidadWithoutTempId).then(registeredFac => {
-                            newFacilidadesMap.set(tempId as number, registeredFac);
-                        })
-                    );
-                } else {
-                    updatesPromises.push(updateFacilities(facilidadToSave));
-                }
-            }
-
-            await Promise.all(updatesPromises);
-
-            // Actualizar el estado con los IDs reales para las nuevas facilidades
-            const finalFacilidades = data.facilidades.map(fac => {
-                if (typeof fac.id !== "number") {
-                    // Si aún tiene un ID temporal, busca el real en el mapa
-                    return newFacilidadesMap.get(fac.id as number) || fac;
-                }
-                return fac;
-            });
-
-            // Si hay un _uuid en la facilidad original, asegúrate de mantenerlo para la key de React
-            const updatedFinalFacilidades = finalFacilidades.map((fac, idx) => ({
-                ...fac,
-                _uuid: (data.facilidades[idx] as any)._uuid // Preserva el _uuid de la original
-            }));
-
-            // Finalmente, actualiza el estado con las facilidades consolidadas
-            notifyChange({ facilidades: updatedFinalFacilidades });
-
-
-            setAlert({
-                type: "success",
-                title: "Cambios Guardados",
-                message: "Todas las facilidades han sido guardadas con éxito.",
-            });
-        } catch (error: any) {
-            console.error("Error al guardar todas las facilidades:", error);
+    // Validar todas las facilidades antes de intentar guardar
+    for (const facilidad of data.facilidades) {
+        const validationMessage = validateFacilidad(facilidad);
+        if (validationMessage) {
             setAlert({
                 type: "error",
-                title: "Error al Guardar",
-                message: `Ocurrió un error al guardar los cambios: ${error.message || "Error desconocido"}`,
+                title: "Error de Validación",
+                message: `Algunas facilidades tienen errores: ${validationMessage}`,
             });
-        } finally {
-            setIsSaving(false);
+            return;
         }
-    };
+    }
+
+    setIsSaving(true);
+    setAlert(null);
+
+    try {
+        const updatedFacilidades: (FacilidadBase & { _uuid: string })[] = [];
+
+        for (const facilidad of data.facilidades) {
+            const { _uuid } = facilidad as any;
+
+           if (!facilidad.id || facilidad.id === 0) {
+               const { id, _uuid: ignored, ...facSinId } = facilidad as any;
+               const registeredFac = await registerFacilities(facSinId);
+
+               updatedFacilidades.push({
+                   ...facilidad,
+                   ...registeredFac, // esto debe ir DESPUÉS para sobreescribir el id: 0
+                   _uuid,
+               });
+           }
+ else {
+               await updateFacilities(facilidad);
+               updatedFacilidades.push(facilidad as any);
+           }
+
+        }
+
+        notifyChange({ facilidades: updatedFacilidades });
+
+        setAlert({
+            type: "success",
+            title: "Cambios Guardados",
+            message: "Todas las facilidades han sido guardadas con éxito.",
+        });
+    } catch (error: any) {
+        console.error("Error al guardar todas las facilidades:", error);
+        setAlert({
+            type: "error",
+            title: "Error al Guardar",
+            message: `Ocurrió un error al guardar los cambios: ${error.message || "Error desconocido"}`,
+        });
+    } finally {
+        await fetchFacilidades();
+
+        setIsSaving(false);
+    }
+};
 
     return {
         facilidades: data.facilidades,
