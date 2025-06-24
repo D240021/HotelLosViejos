@@ -5,9 +5,14 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Sidebar } from "@/components/layout/sidebar";
 import { RoomTypeCard } from "@/components/rates/room-type-card";
 import { useTarifas } from "@/hooks/use-tarifas";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 export default function TarifasPage() {
-  const { habitacionesUnicasPorTipo } = useTarifas();
+  const { habitacionesUnicasPorTipo, isLoading } = useTarifas();
+
+  if (isLoading || habitacionesUnicasPorTipo.length === 0) {
+    return <FullPageLoader />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -19,14 +24,11 @@ export default function TarifasPage() {
             <Sidebar />
 
             <div className="space-y-8">
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-teal-700 mb-6 animate-fade-in-up">
+              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-teal-700 mb-6">
                 Tarifas
               </h1>
 
-              <div
-                className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 mb-8 animate-fade-in-up"
-                style={{ animationDelay: "0.2s" }}
-              >
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 mb-8">
                 <p className="text-gray-700 mb-4">
                   En Hotel Los Viejos ofrecemos diferentes tipos de habitaciones para satisfacer las necesidades de
                   todos nuestros huéspedes. Nuestras tarifas incluyen desayuno buffet, acceso a la piscina, gimnasio y
@@ -39,24 +41,12 @@ export default function TarifasPage() {
               </div>
 
               <div className="space-y-8">
-                {habitacionesUnicasPorTipo.map((habitacion, index) => (
-                  <div
-                    key={habitacion.id}
-                    className="opacity-0 animate-fade-in-up"
-                    style={{
-                      animationDelay: `${0.3 + index * 0.2}s`,
-                      animationFillMode: "forwards",
-                    }}
-                  >
-                    <RoomTypeCard habitacion={habitacion} />
-                  </div>
+                {habitacionesUnicasPorTipo.map((habitacion) => (
+                  <RoomTypeCard key={habitacion.id} habitacion={habitacion} />
                 ))}
               </div>
 
-              <div
-                className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 animate-fade-in-up"
-                style={{ animationDelay: "0.9s" }}
-              >
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6">
                 <h2 className="text-2xl font-playfair font-bold text-teal-700 mb-4">Políticas de reserva</h2>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700">
                   <li>Check-in: 3:00 PM / Check-out: 12:00 PM</li>

@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import Link from "next/link";
+import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { advertisements } from "@/lib/data"
 import type { Advertisement } from "@/types/Publicidad"
-import { usePublicidad } from "@/hooks/use-publicity";
+import { usePublicidad } from "@/hooks/use-publicity"
+import { Spinner } from "@/components/ui/spinner"
 
 interface AdCarouselProps {
   ads?: Advertisement[]
@@ -17,19 +17,21 @@ interface AdCarouselProps {
 export function AdCarousel({ ads, autoplayInterval = 4000 }: AdCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isHovering, setIsHovering] = useState(false)
-  const { publicidades } = usePublicidad();
+  const { publicidades } = usePublicidad()
 
-  const advertisements = ads ?? publicidades;
+  const advertisements = ads ?? publicidades
+
+  const isLoading = advertisements.length === 0
 
   useEffect(() => {
-    if (isHovering) return
+    if (isHovering || isLoading) return
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % advertisements.length)
     }, autoplayInterval)
 
     return () => clearInterval(interval)
-  }, [isHovering, advertisements.length, autoplayInterval])
+  }, [isHovering, advertisements.length, autoplayInterval, isLoading])
 
   const goToNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % advertisements.length)
@@ -37,6 +39,14 @@ export function AdCarousel({ ads, autoplayInterval = 4000 }: AdCarouselProps) {
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + advertisements.length) % advertisements.length)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[300px]">
+        <Spinner size={32} />
+      </div>
+    )
   }
 
   return (
@@ -55,17 +65,22 @@ export function AdCarousel({ ads, autoplayInterval = 4000 }: AdCarouselProps) {
             )}
           >
             <div className="relative w-full h-full">
-             <Link href={ad.enlace || "#"} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-              <Image
-                src={ad.imagen || "/placeholder.svg?height=300&width=400"}
-                alt={ad.nombre}
-                fill
-                className="object-cover"
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-                <h4 className="font-bold text-lg">{ad.titulo}</h4>
-                <p className="text-sm">{ad.descripcion}</p>
-              </div>
+              <Link
+                href={ad.enlace || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full h-full"
+              >
+                <Image
+                  src={ad.imagen || "/placeholder.svg?height=300&width=400"}
+                  alt={ad.nombre}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
+                  <h4 className="font-bold text-lg">{ad.titulo}</h4>
+                  <p className="text-sm">{ad.descripcion}</p>
+                </div>
               </Link>
             </div>
           </div>
@@ -104,4 +119,3 @@ export function AdCarousel({ ads, autoplayInterval = 4000 }: AdCarouselProps) {
     </div>
   )
 }
-

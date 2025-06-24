@@ -1,40 +1,44 @@
-"use client";
+"use client"
 
-import { Suspense } from "react";
-import { Hotel } from "lucide-react";
-import { AdminHeader } from "@/components/admin/admin-header";
-import { AdminFooter } from "@/components/admin/admin-footer";
-import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { UserWelcome } from "@/components/admin/user-welcome";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RoomDescriptionModal } from "@/components/admin/rooms/room-description-modal";
-import { cn } from "@/lib/utils";
-import { useEditarHabitacion } from "@/hooks/use-admin-editar-habitacion";
+import { Suspense } from "react"
+import { Hotel } from "lucide-react"
+import { AdminHeader } from "@/components/admin/admin-header"
+import { AdminFooter } from "@/components/admin/admin-footer"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { UserWelcome } from "@/components/admin/user-welcome"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { RoomDescriptionModal } from "@/components/admin/rooms/room-description-modal"
+import { FullPageLoader } from "@/components/ui/full-page-loader"
+import { cn } from "@/lib/utils"
+import { useEditarHabitacion } from "@/hooks/use-admin-editar-habitacion"
 
 function HabitacionesContent() {
   const {
-    username,
-    showDescriptionModal,
-    setShowDescriptionModal,
-    selectedRoomType,
-    setSelectedRoomType,
-    handleEditRoom,
-    habitacionesFiltradasPorTipo,
-  } = useEditarHabitacion();
+  username,
+  showDescriptionModal,
+  setShowDescriptionModal,
+  selectedRoomType,
+  setSelectedRoomType,
+  handleEditRoom,
+  habitacionesFiltradasPorTipo,
+} = useEditarHabitacion();
+
+const habitacionesFiltradas = habitacionesFiltradasPorTipo("ESTANDAR");
+
+if (habitacionesFiltradas.length === 0) return <FullPageLoader />;
+
 
   const renderRoomTable = (tipo: string, titulo: string) => {
-    const habitacionesFiltradas = habitacionesFiltradasPorTipo(tipo);
-
-    if (habitacionesFiltradas.length === 0) return null;
+    const habitacionesFiltradas = habitacionesFiltradasPorTipo(tipo)
+    if (habitacionesFiltradas.length === 0) return null
 
     return (
       <div className="mb-10" key={tipo}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-medium text-gray-800">{titulo}</h2>
         </div>
-
         <div className="border rounded-md overflow-hidden">
           <Table>
             <TableHeader>
@@ -75,8 +79,8 @@ function HabitacionesContent() {
           </Table>
         </div>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -114,20 +118,19 @@ function HabitacionesContent() {
         <RoomDescriptionModal
           roomType={selectedRoomType}
           onClose={() => setShowDescriptionModal(false)}
-          onSave={(description) => {
-            console.log(`Guardando descripción para ${selectedRoomType}:`, description);
-            setShowDescriptionModal(false);
+          onSave={() => {
+            setShowDescriptionModal(false)
           }}
         />
       )}
     </div>
-  );
+  )
 }
 
 export default function AdministrarHabitacionesPage() {
   return (
-    <Suspense fallback={<div>Cargando habitaciones...</div>}>
+    <Suspense fallback={<FullPageLoader />}>
       <HabitacionesContent />
     </Suspense>
-  );
+  )
 }

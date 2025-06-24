@@ -1,16 +1,26 @@
 "use client";
-import { SiteHeader } from "@/components/layout/site-header"
-import { SiteFooter } from "@/components/layout/site-footer"
-import { Sidebar } from "@/components/layout/sidebar"
-import { LocationMap } from "@/components/location/location-map"
-import { DirectionsInfo } from "@/components/location/directions-info"
-import { locationInfo } from "@/lib/data"
-import { useContacto } from "@/hooks/use-contacto"
-import { use } from "react";
+
+import { useState, useEffect } from "react";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Sidebar } from "@/components/layout/sidebar";
+import { LocationMap } from "@/components/location/location-map";
+import { DirectionsInfo } from "@/components/location/directions-info";
+import { locationInfo } from "@/lib/data";
+import { useContacto } from "@/hooks/use-contacto";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 export default function ComoLlegarPage() {
- 
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const { direccion, latitud, longitud } = useContacto();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isPageLoading) return <FullPageLoader />;
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <SiteHeader />
@@ -43,5 +53,3 @@ export default function ComoLlegarPage() {
     </div>
   );
 }
-
-

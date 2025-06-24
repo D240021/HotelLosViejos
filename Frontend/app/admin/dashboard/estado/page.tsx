@@ -1,20 +1,23 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { BarChart, Printer } from "lucide-react";
-import { AdminHeader } from "@/components/admin/admin-header";
-import { AdminFooter } from "@/components/admin/admin-footer";
-import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { UserWelcome } from "@/components/admin/user-welcome";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useHabitacion } from "@/hooks/use-habitacion";
-import { HabitacionBase } from "@/types/Habitacion";
+import { useState } from "react"
+import { BarChart, Printer } from "lucide-react"
+import { AdminHeader } from "@/components/admin/admin-header"
+import { AdminFooter } from "@/components/admin/admin-footer"
+import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { UserWelcome } from "@/components/admin/user-welcome"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useHabitacion } from "@/hooks/use-habitacion"
+import { HabitacionBase } from "@/types/Habitacion"
+import { FullPageLoader } from "@/components/ui/full-page-loader"
 
 export default function EstadoHotelPage() {
-  const [username] = useState("USUARIO");
-  const { habitaciones, formattedDate, handlePrint, getEstadoClass } = useHabitacion();
+  const [username] = useState("USUARIO")
+  const { habitaciones, formattedDate, handlePrint, getEstadoClass, isReady } = useHabitacion()
+
+  if (!isReady) return <FullPageLoader />
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -64,9 +67,7 @@ export default function EstadoHotelPage() {
                         <TableCell>{habitacion.numero}</TableCell>
                         <TableCell>{habitacion.tipo}</TableCell>
                         <TableCell>
-                          <span
-                            className={`px-3 py-1 rounded-full text-sm font-medium ${getEstadoClass(habitacion.estado)}`}
-                          >
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getEstadoClass(habitacion.estado)}`}>
                             {habitacion.estado}
                           </span>
                         </TableCell>
@@ -82,5 +83,5 @@ export default function EstadoHotelPage() {
 
       <AdminFooter className="print:hidden" />
     </div>
-  );
+  )
 }
