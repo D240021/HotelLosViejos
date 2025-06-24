@@ -75,13 +75,6 @@ export default function EstadoHotelPage() {
                   </TableBody>
                 </Table>
               </div>
-
-              <div className="flex justify-center mt-8 print:hidden">
-                <Button variant="outline" className="flex items-center gap-2" onClick={handlePrint}>
-                  <Printer className="h-4 w-4" />
-                  Imprimir
-                </Button>
-              </div>
             </Card>
           </div>
         </div>
