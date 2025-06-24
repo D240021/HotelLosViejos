@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Plus, Trash2, Pencil, X, CheckCircle, Info, TriangleAlert, XCircle } from "lucide-react"; // Añadí XCircle
+import { Search, Plus, Trash2, Pencil, X, CheckCircle, Info, TriangleAlert, XCircle } from "lucide-react";
 import { usePublicidad } from "@/hooks/use-admin-publicidad";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -396,7 +396,7 @@ export default function PublicidadManager() {
                                     <img
                                         src={isEditing ? editImagen || "/placeholder.svg" : ad.imagen || "/placeholder.svg"}
                                         alt={ad.titulo}
-                                        className="max-w-full max-h-full object-contain" {/* Cambiado a object-contain para asegurar que la imagen completa sea visible */}
+                                        className="max-w-full max-h-full object-contain"
                                     />
                                 </div>
                                 {isEditing && (
