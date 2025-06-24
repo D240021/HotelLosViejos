@@ -85,10 +85,12 @@ export function useEditarHabitacion() {
     setImageInputValue(e.target.value);
   };
 
-  const handleAcceptClick = () => {
-    setFilePreview(imageInputValue);
-    setFormData((prev) => ({ ...prev, nombreImagen: imageInputValue }));
-  };
+    const handleAcceptClick = () => {
+      if (formData.nombreImagen) {
+        setFilePreview(formData.nombreImagen);
+      }
+    };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Plus, Trash2, Pencil, X, CheckCircle, Info, TriangleAlert } from "lucide-react";
+import { Search, Plus, Trash2, Pencil, X, CheckCircle, Info, TriangleAlert, XCircle } from "lucide-react"; // Añadí XCircle
 import { usePublicidad } from "@/hooks/use-admin-publicidad";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { ImageEditor } from "@/components/admin/page-editor/image-editor"
 import { PublicidadBase } from "@/types/Publicidad";
 
@@ -71,7 +72,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ type, title, message, onClo
           ${type === 'warning' ? 'text-yellow-500 hover:bg-yellow-200 focus:ring-yellow-600' : ''}
           `}
         >
-          <span className="sr-only">Close alert</span>
+          <span className="sr-only">Cerrar alerta</span>
           <X size={16} />
         </button>
       )}
@@ -388,23 +389,27 @@ export default function PublicidadManager() {
                               disabled={!isEditing || isSaving}
                             />
 
-                            <div className="border rounded-md bg-gray-50 flex items-center justify-center h-[200px]">
-                              <img
-                                src={isEditing ? editImagen || "/placeholder.svg" : ad.imagen || "/placeholder.svg"}
-                                alt={ad.titulo}
-                                className="max-w-full max-h-full object-cover"
-                              />
-                            </div>
-
-                            <div>
-                              {isEditing && (
-                                <ImageEditor
-                                  compact
-                                  currentImageUrl={editImagen}
-                                  onImageChange={(url) => setEditImagen(url)}
-                                  disabled={isSaving}
-                                />
-                              )}
+                            {/* Mostrar la imagen actual y el editor si está editando */}
+                            <div className="md:col-span-3 space-y-2">
+                                <Label className="block text-sm font-medium text-gray-700">Imagen actual</Label>
+                                <div className="border rounded-md bg-gray-50 flex items-center justify-center h-[200px] overflow-hidden">
+                                    <img
+                                        src={isEditing ? editImagen || "/placeholder.svg" : ad.imagen || "/placeholder.svg"}
+                                        alt={ad.titulo}
+                                        className="max-w-full max-h-full object-contain" {/* Cambiado a object-contain para asegurar que la imagen completa sea visible */}
+                                    />
+                                </div>
+                                {isEditing && (
+                                    <div className="mt-4">
+                                        <Label className="block text-sm font-medium text-gray-700 mb-2">Cambiar imagen</Label>
+                                        <ImageEditor
+                                            compact
+                                            currentImageUrl={editImagen}
+                                            onImageChange={(url) => setEditImagen(url)}
+                                            disabled={isSaving}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="md:col-span-3 flex justify-end space-x-2">
