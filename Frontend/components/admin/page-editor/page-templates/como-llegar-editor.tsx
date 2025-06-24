@@ -1,8 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
-import { MapPin, Mail, Phone, MapIcon, Save } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { MapPin, Mail, Phone, MapIcon, Save, XCircle, CheckCircle, Info, TriangleAlert } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,57 +10,200 @@ import { useContacto } from "@/hooks/use-contacto";
 import { updateContact } from "@/lib/ContactoData";
 import { ContactoBase } from "@/types/Contacto";
 
+interface AlertMessageProps {
+  type: 'success' | 'error' | 'info' | 'warning';
+  title: string;
+  message: string;
+  onClose?: () => void;
+}
+
+const AlertMessage: React.FC<AlertMessageProps> = ({ type, title, message, onClose }) => {
+  let bgColor = '';
+  let textColor = '';
+  let icon: React.ReactNode;
+
+  switch (type) {
+    case 'success':
+      bgColor = 'bg-green-100';
+      textColor = 'text-green-800';
+      icon = <CheckCircle size={20} className="text-green-500" />;
+      break;
+    case 'error':
+      bgColor = 'bg-red-100';
+      textColor = 'text-red-800';
+      icon = <XCircle size={20} className="text-red-500" />;
+      break;
+    case 'info':
+      bgColor = 'bg-blue-100';
+      textColor = 'text-blue-800';
+      icon = <Info size={20} className="text-blue-500" />;
+      break;
+    case 'warning':
+      bgColor = 'bg-yellow-100';
+      textColor = 'text-yellow-800';
+      icon = <TriangleAlert size={20} className="text-yellow-500" />;
+      break;
+    default:
+      bgColor = 'bg-gray-100';
+      textColor = 'text-gray-800';
+      icon = <Info size={20} className="text-gray-500" />;
+  }
+
+  return (
+    <div className={`${bgColor} ${textColor} p-4 rounded-md shadow-sm flex items-start space-x-3 mb-4`}>
+      <div className="flex-shrink-0 mt-0.5">
+        {icon}
+      </div>
+      <div className="flex-grow">
+        <h4 className="font-semibold text-sm">{title}</h4>
+        <p className="text-sm">{message}</p>
+      </div>
+      {onClose && (
+        <button
+          onClick={onClose}
+          className={`ml-auto -mr-1.5 -mt-1.5 p-1 rounded-md inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2
+          ${type === 'success' ? 'text-green-500 hover:bg-green-200 focus:ring-green-600' : ''}
+          ${type === 'error' ? 'text-red-500 hover:bg-red-200 focus:ring-red-600' : ''}
+          ${type === 'info' ? 'text-blue-500 hover:bg-blue-200 focus:ring-blue-600' : ''}
+          ${type === 'warning' ? 'text-yellow-500 hover:bg-yellow-200 focus:ring-yellow-600' : ''}
+          `}
+        >
+          <span className="sr-only">Close alert</span>
+          <XCircle size={16} />
+        </button>
+      )}
+    </div>
+  );
+};
+
 export function ComoLlegarEditor() {
-  const contacto = useContacto();
+  const initialContacto = useContacto();
+  
+  const [alert, setAlert] = useState<{ type: "success" | "error" | "info" | "warning"; title: string; message: string } | null>(null);
+
+  const hasInitialized = useRef(false);
 
   const [data, setData] = useState<ContactoBase>({
-    id: contacto.id,
-    correo: contacto.correo,
-    telefono: contacto.telefono,
-    codigoPostal: contacto.codigoPostal,
-    direccion: contacto.direccion,
-    latitud: contacto.latitud,
-    longitud: contacto.longitud
+    id: 0,
+    correo: "",
+    telefono: "",
+    codigoPostal: "",
+    direccion: "",
+    latitud: "",
+    longitud: ""
   });
 
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const contactoStr = JSON.stringify(contacto);
-    const dataStr = JSON.stringify(data);
-    if (contactoStr !== dataStr) {
-      setData({ ...contacto });
+    if (initialContacto && initialContacto.id !== 0 && !hasInitialized.current) {
+      setData({ ...initialContacto });
+      hasInitialized.current = true;
     }
-  }, [contacto]);
+  }, [initialContacto]);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setData(prev => ({ ...prev, [name]: value }));
+    setAlert(null);
   };
 
   const handleVerificarCoordenadas = () => {
-    const url = `https://www.google.com/maps?q=${Number(data.latitud)},${Number(data.longitud)}`;
+    if (!data.latitud || !data.longitud) {
+      setAlert({
+        type: 'warning',
+        title: 'Coordenadas Incompletas',
+        message: 'Por favor, ingrese valores para Latitud y Longitud antes de verificar.'
+      });
+      return;
+    }
+
+    const lat = Number(data.latitud);
+    const lon = Number(data.longitud);
+
+    if (isNaN(lat) || isNaN(lon)) {
+      setAlert({
+        type: 'error',
+        title: 'Coordenadas Inválidas',
+        message: 'La latitud y longitud deben ser números válidos.'
+      });
+      return;
+    }
+    
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
     window.open(url, "_blank");
+    setAlert(null);
+  };
+
+  const validateForm = (formData: ContactoBase): string | null => {
+    if (!formData.direccion?.trim()) return "La dirección no puede estar vacía.";
+    if (!formData.telefono?.trim()) return "El teléfono no puede estar vacío.";
+    if (!formData.correo?.trim()) return "El correo electrónico no puede estar vacío.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) return "El formato del correo electrónico no es válido.";
+    if (!formData.codigoPostal?.trim()) return "El código postal no puede estar vacío.";
+    if (!formData.latitud?.trim() || isNaN(Number(formData.latitud))) return "La latitud debe ser un número válido.";
+    if (!formData.longitud?.trim() || isNaN(Number(formData.longitud))) return "La longitud debe ser un número válido.";
+    return null;
   };
 
   const handleSave = async () => {
+    const validationError = validateForm(data);
+    if (validationError) {
+      setAlert({
+        type: 'error',
+        title: 'Error de Validación',
+        message: validationError
+      });
+      return;
+    }
+
     setIsSaving(true);
-    updateContact(data);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSaving(false);
-    alert("Cambios guardados con éxito");
-    window.location.reload();
+    setAlert(null);
+
+    try {
+      await updateContact(data);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setAlert({
+        type: 'success',
+        title: '¡Éxito!',
+        message: 'Cambios guardados con éxito.'
+      });
+    } catch (error: any) {
+      console.error("Error al guardar cambios de contacto:", error);
+      setAlert({
+        type: 'error',
+        title: 'Error al Guardar',
+        message: `No se pudieron guardar los cambios: ${error.message || 'Error desconocido'}`
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="space-y-6">
+      {alert && (
+        <AlertMessage
+          type={alert.type}
+          title={alert.title}
+          message={alert.message}
+          onClose={() => setAlert(null)}
+        />
+      )}
 
-      {/* CONTACTO */}
       <div className="border-t pt-6">
         <h2 className="text-xl font-medium text-gray-800 mb-4">Información de contacto</h2>
 
         <div className="space-y-4">
-
           <div>
             <label htmlFor="direccion" className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
               <MapPin size={16} />
@@ -73,7 +216,8 @@ export function ComoLlegarEditor() {
               onChange={handleChange}
               className="w-full"
               placeholder="Ej: San Francisco de Coyote, Guanacaste, Costa Rica"
-              rows={10}
+              rows={5}
+              disabled={isSaving}
             />
           </div>
 
@@ -90,6 +234,7 @@ export function ComoLlegarEditor() {
                 onChange={handleChange}
                 className="w-full"
                 placeholder="Ej: +506 2222-3333"
+                disabled={isSaving}
               />
             </div>
 
@@ -106,6 +251,7 @@ export function ComoLlegarEditor() {
                 className="w-full"
                 placeholder="Ej: info@hotellosviejo.com"
                 type="email"
+                disabled={isSaving}
               />
             </div>
           </div>
@@ -122,13 +268,12 @@ export function ComoLlegarEditor() {
               onChange={handleChange}
               className="w-full"
               placeholder="Ej: 50101"
+              disabled={isSaving}
             />
           </div>
-
         </div>
       </div>
 
-      {/* UBICACIÓN */}
       <div className="border-t pt-6">
         <h2 className="text-xl font-medium text-gray-800 mb-4">Ubicación en el mapa</h2>
 
@@ -145,6 +290,7 @@ export function ComoLlegarEditor() {
                 onChange={handleChange}
                 className="w-full"
                 placeholder="Ej: 9.7489"
+                disabled={isSaving}
               />
             </div>
 
@@ -159,12 +305,13 @@ export function ComoLlegarEditor() {
                 onChange={handleChange}
                 className="w-full"
                 placeholder="Ej: -85.2755"
+                disabled={isSaving}
               />
             </div>
           </div>
 
           <div className="flex justify-end">
-            <Button type="button" variant="outline" onClick={handleVerificarCoordenadas} className="flex items-center gap-2">
+            <Button type="button" variant="outline" onClick={handleVerificarCoordenadas} className="flex items-center gap-2" disabled={isSaving}>
               <MapPin size={16} />
               Verificar coordenadas en Google Maps
             </Button>
