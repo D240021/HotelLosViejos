@@ -1,9 +1,22 @@
-import { SiteHeader } from "@/components/layout/site-header"
-import { SiteFooter } from "@/components/layout/site-footer"
-import { Sidebar } from "@/components/layout/sidebar"
-import { ReservationForm } from "@/components/reservation/reservation-form"
+"use client";
+
+import { useState, useEffect } from "react";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Sidebar } from "@/components/layout/sidebar";
+import { ReservationForm } from "@/components/reservation/reservation-form";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 export default function ReservarPage() {
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isPageLoading) return <FullPageLoader />;
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <SiteHeader />
@@ -28,5 +41,5 @@ export default function ReservarPage() {
 
       <SiteFooter />
     </div>
-  )
+  );
 }
