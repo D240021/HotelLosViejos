@@ -1,18 +1,28 @@
 "use client";
 
-import { SiteHeader } from "@/components/layout/site-header"
-import { SiteFooter } from "@/components/layout/site-footer"
-import { Sidebar } from "@/components/layout/sidebar"
-import { AboutHero } from "@/components/about/about-hero"
-import { AboutContent } from "@/components/about/about-content"
-import { AboutGallery } from "@/components/about/about-gallery"
+import { useState, useEffect } from "react";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Sidebar } from "@/components/layout/sidebar";
+import { AboutHero } from "@/components/about/about-hero";
+import { AboutContent } from "@/components/about/about-content";
+import { AboutGallery } from "@/components/about/about-gallery";
 import { useInformacion } from "@/hooks/use-informacion";
 import { useGaleria } from "@/hooks/use-galeria";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 export default function SobreNosotrosPage() {
-
   const { textoSobreNosotros } = useInformacion();
   const { galerias } = useGaleria();
+
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isPageLoading) return <FullPageLoader />;
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -34,6 +44,5 @@ export default function SobreNosotrosPage() {
 
       <SiteFooter />
     </div>
-  )
+  );
 }
-

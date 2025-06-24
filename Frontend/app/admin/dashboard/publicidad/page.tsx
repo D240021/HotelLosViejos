@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ImageEditor } from "@/components/admin/page-editor/image-editor"
 import { PublicidadBase } from "@/types/Publicidad";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 interface AlertMessageProps {
   type: 'success' | 'error' | 'info' | 'warning';
@@ -80,8 +81,14 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ type, title, message, onClo
   );
 };
 
-
 export default function PublicidadManager() {
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   const {
     ads,
     newAdNombre,
@@ -244,6 +251,8 @@ export default function PublicidadManager() {
     setAdToDelete(null);
     setIsDeleteDialogOpen(false);
   };
+
+  if (isPageLoading) return <FullPageLoader />;
 
   const confirmDelete = async () => {
     if (adToDelete) {

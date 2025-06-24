@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { CalendarCheck, Eye, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminFooter } from "@/components/admin/admin-footer";
@@ -12,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ReservationDetailModal } from "@/components/admin/reservaciones/reservation-detail-modal";
 import { useAdminReservaciones } from "@/hooks/use-admin-reservaciones";
 import { formatearFecha } from "@/lib/utils";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 export default function ListadoReservacionesPage() {
   const {
@@ -29,7 +31,15 @@ export default function ListadoReservacionesPage() {
     selectedReservation,
   } = useAdminReservaciones();
 
-  
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+  const timer = setTimeout(() => setIsPageLoading(false), 800);
+  return () => clearTimeout(timer);
+}, []);
+
+  if (isPageLoading) return <FullPageLoader />;
+
   return (
     <div className="min-h-screen flex flex-col relative">
       <div className="border-b bg-white">
