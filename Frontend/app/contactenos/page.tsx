@@ -1,14 +1,23 @@
 "use client";
-import { SiteHeader } from "@/components/layout/site-header"
-import { SiteFooter } from "@/components/layout/site-footer"
-import { Sidebar } from "@/components/layout/sidebar"
+
+import { useState, useEffect } from "react";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Sidebar } from "@/components/layout/sidebar";
 import { useContacto } from "@/hooks/use-contacto";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 export default function ContactenosPage() {
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const contacto = useContacto();
 
-  if (!contacto) {
-    return <p className="text-center">Cargando datos...</p>;
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isPageLoading || !contacto) {
+    return <FullPageLoader />;
   }
 
   const { correo, telefono, codigoPostal } = contacto;
@@ -46,5 +55,3 @@ export default function ContactenosPage() {
     </div>
   );
 }
-
-

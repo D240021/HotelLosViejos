@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { ParallaxSection } from "@/components/ui/parallax-section";
+import { Spinner } from "@/components/ui/spinner";
 import { useInformacion } from "@/hooks/use-informacion";
 
 interface WelcomeSectionProps {
@@ -27,6 +28,24 @@ interface WelcomeSectionProps {
 export function WelcomeSection({ content }: WelcomeSectionProps) {
   const { image } = content;
   const { textoBienvenida, nombre, nombreImagenBienvenida } = useInformacion();
+
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Solo se activa cuando hay datos mínimos
+    if (nombre && textoBienvenida && nombreImagenBienvenida) {
+      const timer = setTimeout(() => setIsLoaded(true), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [nombre, textoBienvenida, nombreImagenBienvenida]);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex justify-center items-center min-h-[300px]">
+        <Spinner size={32} />
+      </div>
+    );
+  }
 
   return (
     <ParallaxSection>

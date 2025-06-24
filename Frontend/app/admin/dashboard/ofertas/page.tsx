@@ -16,6 +16,7 @@ import { useOferta } from "@/hooks/use-ofertas"
 import { DateSelector } from "@/components/reservation/date-selector"
 import { useTemporadaStore } from "@/lib/seasonData"
 import type { OfertaBase } from "@/types/Oferta";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 interface AlertMessageProps {
   type: 'success' | 'error' | 'info' | 'warning';
@@ -84,6 +85,15 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ type, title, message, onClo
 };
 
 export default function GestionarOfertasPage() {
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+    useEffect(() => {
+      const timer = setTimeout(() => setIsPageLoading(false), 800);
+      return () => clearTimeout(timer);
+    }, []);
+
+    
+
   const {
     altaPercentage,
     bajaPercentage,
@@ -123,6 +133,7 @@ export default function GestionarOfertasPage() {
     setEditedOffers,
   } = useOferta();
 
+
   const [alert, setAlert] = useState<{ type: "success" | "error" | "info" | "warning"; title: string; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -151,6 +162,7 @@ export default function GestionarOfertasPage() {
       }
     }
   }
+if (isPageLoading) return <FullPageLoader />;
 
   function validateOffer(offer: OfertaBase | {
     titulo: string,

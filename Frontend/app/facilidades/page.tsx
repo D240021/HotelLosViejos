@@ -1,14 +1,23 @@
 "use client";
-import { SiteHeader } from "@/components/layout/site-header"
-import { SiteFooter } from "@/components/layout/site-footer"
-import { Sidebar } from "@/components/layout/sidebar"
-import { FacilitiesList } from "@/components/facilities/facilities-list"
-import { facilities } from "@/lib/data"
+
+import { useState, useEffect } from "react";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { Sidebar } from "@/components/layout/sidebar";
+import { FacilitiesList } from "@/components/facilities/facilities-list";
 import { useFacilidad } from "@/hooks/use-facilidades";
+import { FullPageLoader } from "@/components/ui/full-page-loader";
 
 export default function FacilitiesPage() {
-
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const { facilidades } = useFacilidad();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isPageLoading || !facilidades) return <FullPageLoader />;
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -20,7 +29,9 @@ export default function FacilitiesPage() {
             <Sidebar />
 
             <div className="space-y-8">
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-teal-700 mb-6">Facilidades</h1>
+              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-teal-700 mb-6">
+                Facilidades
+              </h1>
 
               <FacilitiesList facilities={facilidades} />
             </div>
@@ -30,6 +41,5 @@ export default function FacilitiesPage() {
 
       <SiteFooter />
     </div>
-  )
+  );
 }
-
