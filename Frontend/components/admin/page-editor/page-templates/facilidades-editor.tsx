@@ -5,25 +5,30 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ImageEditor } from "../image-editor";
 import { MoveUp, MoveDown, Trash2, Save, Plus } from "lucide-react";
-
+import { FullPageLoader } from "@/components/ui/full-page-loader"
 import { useFacilidadesEditor } from "@/hooks/use-facilidades-editor";
 import { AlertMessage } from  "@/components/alert"
 
 export function FacilidadesEditor({ onChange }: { onChange?: (data: any) => void }) {
     const {
-        facilidades,
-        isSaving,
-        handleChange,
-        handleAdd,
-        handleRemove,
-        handleReorder,
-        handleSave, // Ahora se llama directamente
-        showConfirmDelete,
-        setShowConfirmDelete,
-        confirmDelete,
-        alert,
-        setAlert,
-    } = useFacilidadesEditor(onChange);
+    facilidades,
+    isSaving,
+    handleChange,
+    handleAdd,
+    handleRemove,
+    handleReorder,
+    handleSave,
+    showConfirmDelete,
+    setShowConfirmDelete,
+    confirmDelete,
+    alert,
+    setAlert,
+} = useFacilidadesEditor(onChange);
+
+// Mostrar loader si los datos aún no están listos
+if (!facilidades || facilidades.length === 0) {
+  return <FullPageLoader />
+}
 
     return (
         <div className="space-y-6">
