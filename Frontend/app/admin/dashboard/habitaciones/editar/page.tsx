@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/admin/rooms/multi-select";
 import { useEditarHabitacion } from "@/hooks/use-admin-editar-habitacion";
+import { ImageEditor } from "@/components/admin/page-editor/image-editor"
 
 export default function EditarHabitacionPage() {
   const {
@@ -174,49 +175,22 @@ export default function EditarHabitacionPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Imagen actual</Label>
-                    <div className="border rounded-md overflow-hidden bg-gray-50 flex items-center justify-center h-[200px]">
-                      {filePreview ? (
-                        <img
-                          src={filePreview}
-                          onError={() => setFilePreview("/placeholder.svg")}
-                          alt="Imagen de habitación"
-                          className="max-w-full max-h-full object-contain"
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Subir nueva imagen</Label>
+                      <div className="border rounded-md p-4 bg-gray-50">
+                        <ImageEditor
+                          label="Imagen de la habitación"
+                          currentImageUrl={formData.nombreImagen}
+                          onImageChange={(newUrl) => {
+                            setFormData((prev) => ({ ...prev, nombreImagen: newUrl }));
+                            setFilePreview(newUrl);
+                          }}
                         />
-                      ) : (
-                        <div className="text-gray-400">Sin imagen</div>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label>Subir nueva imagen</Label>
-                    <div className="border rounded-md p-4 bg-gray-50">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Input
-                          id="nombreImagen"
-                          name="nombreImagen"
-                          placeholder="https://ejemplo.com/imagen.jpg"
-                          value={imageInputValue}
-                          onChange={handleImageUrlChange}
-                          className="flex-1"
-                        />
-                      </div>
 
-                      <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="outline" size="sm" onClick={() => {
-                          setFormData((prev) => ({ ...prev, nombreImagen: "" }));
-                          setFilePreview("");
-                        }}>
-                          Cancelar
-                        </Button>
-                        <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={handleAcceptClick}>
-                          Aceptar
-                        </Button>
                       </div>
                     </div>
-                  </div>
+
                 </div>
               </div>
             </Card>

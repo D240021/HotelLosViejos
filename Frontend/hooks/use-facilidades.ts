@@ -5,21 +5,20 @@ import type { FacilidadBase } from "@/types/Facilidad";
 import { getAllFacilities } from "@/lib/FacilidadData";
 
 export const useFacilidad = () => {
-
     const [facilidades, setFacilidades] = useState<FacilidadBase[]>([]);
 
-    useEffect(() => {
-        
-        async function fetchData(){
-            try {
-                const facilidades = await getAllFacilities();
-                setFacilidades(facilidades);
-            } catch (error) {
-                console.error("Error al obtener facilidades:", error);
-            }
+    const fetchFacilidades = async () => {
+        try {
+            const result = await getAllFacilities();
+            setFacilidades(result);
+        } catch (error) {
+            console.error("Error al obtener facilidades:", error);
         }
-        fetchData();
+    };
+
+    useEffect(() => {
+        fetchFacilidades();
     }, []);
 
-    return { facilidades };
-}
+    return { facilidades, fetchFacilidades };
+};

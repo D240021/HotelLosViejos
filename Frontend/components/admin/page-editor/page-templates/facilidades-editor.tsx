@@ -73,7 +73,7 @@ export function FacilidadesEditor({ onChange }: { onChange?: (data: any) => void
                         // Usamos el ID numérico si existe, o el ID temporal (Date.now() o _uuid si lo gestionas) para la key
                         // Aquí, si tu FacilidadBase no tiene _uuid, podrías necesitar añadirlo o usar i para las nuevas.
                         // Para la compatibilidad con el id temporal de Date.now(), haremos un cast para usarlo como key.
-                        const key = typeof facilidad.id === 'number' ? facilidad.id : `temp-${facilidad.id || i}`;
+                       const key = (facilidad as any)._uuid || (typeof facilidad.id === 'number' ? facilidad.id : `temp-${i}`);
 
                         return (
                             <div key={key} className="border rounded-md p-4 relative">
@@ -110,8 +110,8 @@ export function FacilidadesEditor({ onChange }: { onChange?: (data: any) => void
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
                                         <Input
-                                            value={facilidad.titulo}
-                                            onChange={(e) => handleChange(i, "titulo", e.target.value)}
+                                            value={facilidad.titulo ?? ""}
+                                              onChange={(e) => handleChange(i, "titulo", e.target.value)}
                                             placeholder="Ej: Spa, Piscina..."
                                             disabled={isSaving}
                                         />
@@ -120,9 +120,8 @@ export function FacilidadesEditor({ onChange }: { onChange?: (data: any) => void
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                                         <Textarea
-                                            value={facilidad.descripcion}
-                                            onChange={(e) => handleChange(i, "descripcion", e.target.value)}
-                                            rows={4}
+                                            value={facilidad.descripcion ?? ""}
+                                              onChange={(e) => handleChange(i, "descripcion", e.target.value)}  rows={4}
                                             placeholder="Describa esta facilidad"
                                             disabled={isSaving}
                                         />
@@ -130,21 +129,15 @@ export function FacilidadesEditor({ onChange }: { onChange?: (data: any) => void
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="border rounded-md bg-gray-50 flex items-center justify-center h-[200px]">
-                                                <img
-                                                    src={facilidad.nombreImagen || "/placeholder.svg"}
-                                                    alt={facilidad.titulo}
-                                                    className="max-w-full max-h-full object-cover"
-                                                />
-                                            </div>
+                                        <div className="">
+
                                             <div>
-                                                <ImageEditor
-                                                    compact
-                                                    currentImageUrl={facilidad.nombreImagen}
-                                                    onImageChange={(url) => handleChange(i, "nombreImagen", url)}
-                                                    disabled={isSaving}
-                                                />
+                                               <ImageEditor
+                                                 compact
+                                                 currentImageUrl={facilidad.nombreImagen ?? "/placeholder.svg?height=300&width=400"}
+                                                 onImageChange={(url) => handleChange(i, "nombreImagen", url)}
+                                                 disabled={isSaving}
+                                               />
                                             </div>
                                         </div>
                                     </div>

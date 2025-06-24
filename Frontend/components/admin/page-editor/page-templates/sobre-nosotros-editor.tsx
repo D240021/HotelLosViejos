@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useSobreNosotrosEditor } from "@/hooks/use-sobre-nosotros-editor"
 import { AlertMessage } from "@/components/alert"
+import { ImageEditor } from "@/components/admin/page-editor/image-editor"
 
 export function SobreNosotrosEditor() {
     const {
@@ -151,12 +152,8 @@ export function SobreNosotrosEditor() {
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                                        <img
-                                            src={imagen.nombreImagen || "/placeholder.svg"}
-                                            alt={imagen.descripcion || "Imagen de galería"}
-                                            className="w-full h-40 object-cover rounded-md"
-                                        />
-                                        <div className="space-y-3">
+
+                                        <div className="space-y-3 md:col-span-2">
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     Título (opcional)
@@ -169,14 +166,11 @@ export function SobreNosotrosEditor() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    URL de la imagen
-                                                </label>
-                                                <Input
-                                                    value={imagen.nombreImagen}
-                                                    onChange={(e) => handleImageUrlChange(imagen.id, e.target.value)}
-                                                    placeholder="URL de la imagen"
-                                                    disabled={isLoading || isSaving}
+                                                <ImageEditor
+                                                  label="Imagen"
+                                                  currentImageUrl={imagen.nombreImagen}
+                                                  onImageChange={(newUrl) => handleImageUrlChange(imagen.id, newUrl)}
+                                                  compact
                                                 />
                                             </div>
                                         </div>

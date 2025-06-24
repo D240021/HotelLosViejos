@@ -1,9 +1,7 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { useImageEditor } from "@/hooks/use-image-editor"
-import { ImagePreview } from "./image-preview"
+import { ChangeEvent, useState, useEffect } from "react"
 
 interface ImageEditorProps {
   label?: string
@@ -12,43 +10,49 @@ interface ImageEditorProps {
   compact?: boolean
 }
 
+// 🔧 Configura tu Cloudinary aquí:
+const CLOUD_NAME = "dp5hyblex"
+const UPLOAD_PRESET = "HotelLosviejos"
+
 export function ImageEditor({
   label = "Imagen",
   currentImageUrl,
   onImageChange,
   compact = false,
 }: ImageEditorProps) {
-  const {
-    newImageUrl,
-    previewImageUrl,
-    handleImageUrlChange,
-    handlePreviewImage,
-    handleApplyImage,
-    handleCancelImage,
-  } = useImageEditor(currentImageUrl, onImageChange)
+  const [loading, setLoading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState(currentImageUrl)
 
-  if (compact) {
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
-        <ImagePreview url={previewImageUrl} alt={label} height="h-[120px]" size={32} emptyLabel="" />
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="URL de la imagen"
-            value={newImageUrl}
-            onChange={(e) => handleImageUrlChange(e.target.value)}
-            className="flex-1 text-xs"
-          />
-          <Button type="button" size="sm" variant="outline" onClick={handlePreviewImage} className="text-xs">
-            Ver
-          </Button>
-          <Button type="button" size="sm" onClick={handleApplyImage} className="bg-teal-600 hover:bg-teal-700 text-xs">
-            Aplicar
-          </Button>
-        </div>
-      </div>
-    )
+  // Actualizar preview cuando cambie currentImageUrl externo
+  useEffect(() => {
+    setPreviewUrl(currentImageUrl)
+  }, [currentImageUrl])
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setLoading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("upload_preset", UPLOAD_PRESET)
+
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!res.ok) throw new Error("Error al subir a Cloudinary")
+
+      const data = await res.json()
+      setPreviewUrl(data.secure_url)
+      onImageChange(data.secure_url)
+    } catch (err) {
+      console.error("Error al subir imagen:", err)
+    }
+
+    setLoading(false)
   }
 
   return (
@@ -56,33 +60,23 @@ export function ImageEditor({
       <label className="block text-sm font-medium text-gray-700 mb-3">{label}</label>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Imagen actual</h3>
-          <ImagePreview url={previewImageUrl} alt={label} />
+          <h3 className="text-sm font-medium text-gray-600 mb-2">Previsualización</h3>
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt={label}
+              className="w-full h-40 object-cover rounded-md border"
+            />
+          ) : (
+            <div className="w-full h-40 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 border">
+              Sin imagen
+            </div>
+          )}
         </div>
         <div>
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Enlace de imagen</h3>
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="URL de la imagen"
-                value={newImageUrl}
-                onChange={(e) => handleImageUrlChange(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="button" variant="outline" onClick={handlePreviewImage}>
-                Previsualizar
-              </Button>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={handleCancelImage}>
-                Cancelar
-              </Button>
-              <Button type="button" onClick={handleApplyImage} className="bg-teal-600 hover:bg-teal-700">
-                Aceptar
-              </Button>
-            </div>
-          </div>
+          <h3 className="text-sm font-medium text-gray-600 mb-2">Subir imagen</h3>
+          <Input type="file" accept="image/*" onChange={handleFileChange} disabled={loading} />
+          {loading && <p className="text-sm text-gray-500 mt-2">Subiendo imagen...</p>}
         </div>
       </div>
     </div>

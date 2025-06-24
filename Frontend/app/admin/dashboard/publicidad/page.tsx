@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { ImageEditor } from "@/components/admin/page-editor/image-editor"
 
 export default function PublicidadManager() {
@@ -206,25 +207,25 @@ const confirmDelete = async () => {
                               disabled={!isEditing}
                             />
 
-                            {/* Mostrar la imagen actual o la que está editando */}
-                            <div className="border rounded-md bg-gray-50 flex items-center justify-center h-[200px]">
-                              <img
-                                src={isEditing ? editImagen || "/placeholder.svg" : ad.imagen || "/placeholder.svg"}
-                                alt={ad.titulo}
-                                className="max-w-full max-h-full object-cover"
-                              />
-                            </div>
+
 
                             {/* ImageEditor para editar imagen, solo habilitado si está editando */}
-                            <div>
-                              {isEditing && (
+                            <div className="space-y-2 md:col-span-3">
+                              <Label className="block text-sm font-medium text-gray-700">Imagen</Label>
+
+                              <div className={`${!isEditing ? "pointer-events-none opacity-50" : ""}`}>
                                 <ImageEditor
                                   compact
-                                  currentImageUrl={editImagen}
-                                  onImageChange={(url) => setEditImagen(url)}
+                                  currentImageUrl={isEditing ? editImagen : ad.imagen}
+                                  onImageChange={(url) => {
+                                    if (isEditing) {
+                                      setEditImagen(url);
+                                    }
+                                  }}
                                 />
-                              )}
+                              </div>
                             </div>
+
 
                             {/* Aquí ya no pones el Input para la imagen */}
 
