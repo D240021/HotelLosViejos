@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useContacto } from "@/hooks/use-contacto";
 import { updateContact } from "@/lib/ContactoData";
 import { ContactoBase } from "@/types/Contacto";
+import { FullPageLoader } from "@/components/ui/full-page-loader"
 
 interface AlertMessageProps {
   type: 'success' | 'error' | 'info' | 'warning';
@@ -110,6 +111,10 @@ export function ComoLlegarEditor() {
       return () => clearTimeout(timer);
     }
   }, [alert]);
+
+  if (!initialContacto || initialContacto.id === 0) {
+    return <FullPageLoader />
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
