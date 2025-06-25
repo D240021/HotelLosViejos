@@ -1,6 +1,20 @@
-import Link from "next/link"
-import { WaterWave } from "@/components/ui/water-wave"
-import { hotelInfo } from "@/lib/data"
+import Link from "next/link";
+import { WaterWave } from "@/components/ui/water-wave";
+import { hotelInfo } from "@/lib/data";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+
+import { PrivacyPolicyContent } from "../privacy-terms/privacy-terms-content";
+import { TermsConditionsContent } from "../privacy-terms/privacy-terms-content";
 
 export function SiteFooter() {
   return (
@@ -11,12 +25,42 @@ export function SiteFooter() {
             Copyright © {hotelInfo.name} {new Date().getFullYear()}
           </p>
           <div className="flex items-center gap-4 mt-4 md:mt-0">
-            <Link href="/politica-privacidad" className="text-sm hover:underline">
-              Política de Privacidad
-            </Link>
-            <Link href="/terminos-condiciones" className="text-sm hover:underline">
-              Términos y Condiciones
-            </Link>
+            {/* Diálogo para Política de Privacidad */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="link" className="p-0 h-auto text-sm text-teal-800 hover:underline">
+                  Política de Privacidad
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto"> {/* Añade max-h y overflow para contenido largo */}
+                <DialogHeader>
+                  <DialogTitle className="text-teal-700">Política de Privacidad</DialogTitle>
+                  <DialogDescription>
+                    Conoce cómo manejamos tus datos.
+                  </DialogDescription>
+                </DialogHeader>
+                <PrivacyPolicyContent /> {/* Aquí se renderiza el contenido de la política */}
+              </DialogContent>
+            </Dialog>
+
+            {/* Diálogo para Términos y Condiciones */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="link" className="p-0 h-auto text-sm text-teal-800 hover:underline">
+                  Términos y Condiciones
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto"> {/* Añade max-h y overflow para contenido largo */}
+                <DialogHeader>
+                  <DialogTitle className="text-teal-700">Términos y Condiciones</DialogTitle>
+                  <DialogDescription>
+                    Revisa las reglas para el uso de nuestro servicio.
+                  </DialogDescription>
+                </DialogHeader>
+                <TermsConditionsContent /> {/* Aquí se renderiza el contenido de los términos */}
+              </DialogContent>
+            </Dialog>
+
             <Link
               href="/admin"
               className="text-sm font-medium text-teal-700 hover:underline flex items-center gap-1"
@@ -47,5 +91,5 @@ export function SiteFooter() {
         <WaterWave color="#0d9488" />
       </div>
     </footer>
-  )
+  );
 }
