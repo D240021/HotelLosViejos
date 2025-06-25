@@ -1,5 +1,4 @@
 import Image from "next/image";
-import type { Facility } from "@/types";
 import { FacilidadBase } from "@/types/Facilidad";
 
 interface FacilityCardProps {
