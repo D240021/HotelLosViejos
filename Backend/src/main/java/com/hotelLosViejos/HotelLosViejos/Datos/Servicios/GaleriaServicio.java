@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class GaleriaServicio implements IGaleria {
@@ -40,29 +42,25 @@ public class GaleriaServicio implements IGaleria {
     @Modifying
     @Transactional
     @Override
-    public boolean actualizarGalerias(List<Galeria> nuevasGalerias) {
-        try {
-            List<Integer> nuevosIds = nuevasGalerias.stream()
-                    .map(Galeria::getId)
-                    .filter(id -> id != null) // evitar nulls
-                    .toList();
+    public List<Galeria> actualizarGalerias(List<Galeria> nuevasGalerias) {
+        Set<Integer> idsExistentesEntrantes = nuevasGalerias.stream()
+                .map(Galeria::getId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
 
-            List<Galeria> existentes = galeriaRepositorio.findAll();
+        List<Galeria> existentesEnDb = galeriaRepositorio.findAll();
 
-            List<Galeria> paraEliminar = existentes.stream()
-                    .filter(img -> !nuevosIds.contains(img.getId()))
-                    .toList();
+        List<Galeria> paraEliminar = existentesEnDb.stream()
+                .filter(img -> !idsExistentesEntrantes.contains(img.getId()))
+                .toList();
 
+        if (!paraEliminar.isEmpty()) {
             galeriaRepositorio.deleteAll(paraEliminar);
-
-            galeriaRepositorio.saveAll(nuevasGalerias);
-
-            return true;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
         }
+
+        List<Galeria> galeriasGuardadasOActualizadas = galeriaRepositorio.saveAll(nuevasGalerias);
+
+        return galeriasGuardadasOActualizadas;
     }
 
 
