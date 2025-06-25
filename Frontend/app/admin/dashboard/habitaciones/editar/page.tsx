@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react"; // Asegúrate de importar useState y useEffect
-import { Hotel, Save, ArrowLeft, CheckCircle, Info, TriangleAlert, XCircle } from "lucide-react"; // Importa los íconos de alerta
+import React, { useState, useEffect } from "react";
+import {
+  Hotel, Save, ArrowLeft, CheckCircle, Info, TriangleAlert, XCircle
+} from "lucide-react";
+
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminFooter } from "@/components/admin/admin-footer";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -12,9 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/admin/rooms/multi-select";
 import { useEditarHabitacion } from "@/hooks/use-admin-editar-habitacion";
-import { ImageEditor } from "@/components/admin/page-editor/image-editor" // Manteniendo la importación original de PreProducción
+import { ImageEditor } from "@/components/admin/page-editor/image-editor";
+import { Spinner } from "@/components/ui/spinner"; // Asegúrate que este existe
 
-// Componente AlertMessage (reutilizable)
 interface AlertMessageProps {
   type: 'success' | 'error' | 'info' | 'warning';
   title: string;
@@ -23,56 +26,30 @@ interface AlertMessageProps {
 }
 
 const AlertMessage: React.FC<AlertMessageProps> = ({ type, title, message, onClose }) => {
-  let bgColor = '';
-  let textColor = '';
-  let icon: React.ReactNode;
+  let bgColor = '', textColor = '', icon: React.ReactNode;
 
   switch (type) {
     case 'success':
-      bgColor = 'bg-green-100';
-      textColor = 'text-green-800';
-      icon = <CheckCircle size={20} className="text-green-500" />;
-      break;
+      bgColor = 'bg-green-100'; textColor = 'text-green-800'; icon = <CheckCircle size={20} className="text-green-500" />; break;
     case 'error':
-      bgColor = 'bg-red-100';
-      textColor = 'text-red-800';
-      icon = <XCircle size={20} className="text-red-500" />;
-      break;
+      bgColor = 'bg-red-100'; textColor = 'text-red-800'; icon = <XCircle size={20} className="text-red-500" />; break;
     case 'info':
-      bgColor = 'bg-blue-100';
-      textColor = 'text-blue-800';
-      icon = <Info size={20} className="text-blue-500" />;
-      break;
+      bgColor = 'bg-blue-100'; textColor = 'text-blue-800'; icon = <Info size={20} className="text-blue-500" />; break;
     case 'warning':
-      bgColor = 'bg-yellow-100';
-      textColor = 'text-yellow-800';
-      icon = <TriangleAlert size={20} className="text-yellow-500" />;
-      break;
+      bgColor = 'bg-yellow-100'; textColor = 'text-yellow-800'; icon = <TriangleAlert size={20} className="text-yellow-500" />; break;
     default:
-      bgColor = 'bg-gray-100';
-      textColor = 'text-gray-800';
-      icon = <Info size={20} className="text-gray-500" />;
+      bgColor = 'bg-gray-100'; textColor = 'text-gray-800'; icon = <Info size={20} className="text-gray-500" />;
   }
 
   return (
     <div className={`${bgColor} ${textColor} p-4 rounded-md shadow-sm flex items-start space-x-3 mb-4`}>
-      <div className="flex-shrink-0 mt-0.5">
-        {icon}
-      </div>
+      <div className="flex-shrink-0 mt-0.5">{icon}</div>
       <div className="flex-grow">
         <h4 className="font-semibold text-sm">{title}</h4>
         <p className="text-sm">{message}</p>
       </div>
       {onClose && (
-        <button
-          onClick={onClose}
-          className={`ml-auto -mr-1.5 -mt-1.5 p-1 rounded-md inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2
-          ${type === 'success' ? 'text-green-500 hover:bg-green-200 focus:ring-green-600' : ''}
-          ${type === 'error' ? 'text-red-500 hover:bg-red-200 focus:ring-red-600' : ''}
-          ${type === 'info' ? 'text-blue-500 hover:bg-blue-200 focus:ring-blue-600' : ''}
-          ${type === 'warning' ? 'text-yellow-500 hover:bg-yellow-200 focus:ring-yellow-600' : ''}
-          `}
-        >
+        <button onClick={onClose} className="ml-auto -mr-1.5 -mt-1.5 p-1 rounded-md inline-flex items-center justify-center">
           <span className="sr-only">Cerrar alerta</span>
           <XCircle size={16} />
         </button>
@@ -81,11 +58,11 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ type, title, message, onClo
   );
 };
 
-
 export default function EditarHabitacionPage() {
   const {
     username,
     isSaving,
+    isLoading,
     formData,
     filePreview,
     imageInputValue,
@@ -94,45 +71,41 @@ export default function EditarHabitacionPage() {
     handleCaracteristicasChange,
     handleImageUrlChange,
     handleAcceptClick,
-    handleSave: hookHandleSave, // Renombramos para evitar conflicto con nuestra función local
+    handleSave: hookHandleSave,
     handleBack,
     getTipoTitulo,
     setFormData,
     setFilePreview,
   } = useEditarHabitacion();
 
-  const [alert, setAlert] = useState<{ type: "success" | "error" | "info" | "warning"; title: string; message: string } | null>(null);
+  const [alert, setAlert] = useState<AlertMessageProps | null>(null);
 
-  // Manejar la desaparición automática de la alerta
   useEffect(() => {
     if (alert) {
-      const timer = setTimeout(() => {
-        setAlert(null);
-      }, 4000);
+      const timer = setTimeout(() => setAlert(null), 4000);
       return () => clearTimeout(timer);
     }
   }, [alert]);
 
   const handleSaveWrapper = async () => {
-    setAlert(null); // Limpiar cualquier alerta existente
+    setAlert(null);
     try {
-      const success = await hookHandleSave(); // Llama a la función del hook
+      const success = await hookHandleSave();
       if (success) {
-        setAlert({
-          type: 'success',
-          title: '¡Éxito!',
-          message: 'Cambios guardados correctamente.'
-        });
+        setAlert({ type: 'success', title: '¡Éxito!', message: 'Cambios guardados correctamente.' });
       }
     } catch (error: any) {
-      console.error("Error al guardar cambios de habitación:", error);
-      setAlert({
-        type: 'error',
-        title: 'Error al Guardar',
-        message: error.message || 'No se pudieron guardar los cambios. Intenta de nuevo.'
-      });
+      setAlert({ type: 'error', title: 'Error al Guardar', message: error.message || 'No se pudieron guardar los cambios.' });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner className="w-10 h-10 text-teal-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col relative">

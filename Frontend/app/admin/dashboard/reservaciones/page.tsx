@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { CalendarCheck, Eye, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import React from "react";
+import {
+  CalendarCheck,
+  Eye,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminFooter } from "@/components/admin/admin-footer";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -9,11 +15,18 @@ import { UserWelcome } from "@/components/admin/user-welcome";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ReservationDetailModal } from "@/components/admin/reservaciones/reservation-detail-modal";
 import { useAdminReservaciones } from "@/hooks/use-admin-reservaciones";
 import { formatearFecha } from "@/lib/utils";
-import { FullPageLoader } from "@/components/ui/full-page-loader";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ListadoReservacionesPage() {
   const {
@@ -29,16 +42,8 @@ export default function ListadoReservacionesPage() {
     showDetailModal,
     setShowDetailModal,
     selectedReservation,
+    isLoading,
   } = useAdminReservaciones();
-
-  const [isPageLoading, setIsPageLoading] = useState(true);
-
-  useEffect(() => {
-  const timer = setTimeout(() => setIsPageLoading(false), 800);
-  return () => clearTimeout(timer);
-}, []);
-
-  if (isPageLoading) return <FullPageLoader />;
 
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -57,7 +62,9 @@ export default function ListadoReservacionesPage() {
             <Card className="p-6 border rounded-md">
               <div className="flex items-center gap-3 mb-6">
                 <CalendarCheck className="h-6 w-6 text-teal-600" />
-                <h1 className="text-2xl font-playfair font-bold text-teal-800">Listado de Reservaciones</h1>
+                <h1 className="text-2xl font-playfair font-bold text-teal-800">
+                  Listado de Reservaciones
+                </h1>
               </div>
 
               <div className="mb-6">
@@ -88,15 +95,27 @@ export default function ListadoReservacionesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedReservations.length > 0 ? (
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-12">
+                            <div className="flex justify-center items-center">
+                              <Spinner size={32} color="text-teal-600" />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : paginatedReservations.length > 0 ? (
                         paginatedReservations.map((reserva) => (
                           <TableRow key={reserva.id}>
                             <TableCell>{reserva.id}</TableCell>
                             <TableCell>{reserva.cliente.nombre}</TableCell>
                             <TableCell>{reserva.cliente.apellidos}</TableCell>
                             <TableCell>{reserva.cliente.correo}</TableCell>
-                            <TableCell>{formatearFecha(reserva.fechaLlegada)}</TableCell>
-                            <TableCell>{formatearFecha(reserva.fechaSalida)}</TableCell>
+                            <TableCell>
+                              {formatearFecha(reserva.fechaLlegada)}
+                            </TableCell>
+                            <TableCell>
+                              {formatearFecha(reserva.fechaSalida)}
+                            </TableCell>
                             <TableCell>
                               <span
                                 className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -115,7 +134,9 @@ export default function ListadoReservacionesPage() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => handleViewReservation(reserva)}
+                                  onClick={() =>
+                                    handleViewReservation(reserva)
+                                  }
                                   className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                                 >
                                   <Eye className="h-4 w-4" />
@@ -126,7 +147,10 @@ export default function ListadoReservacionesPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={11} className="text-center py-8 text-gray-500">
+                          <TableCell
+                            colSpan={8}
+                            className="text-center py-8 text-gray-500"
+                          >
                             No se encontraron reservaciones
                           </TableCell>
                         </TableRow>
@@ -136,17 +160,23 @@ export default function ListadoReservacionesPage() {
                 </div>
               </div>
 
-              {paginatedReservations.length > 0 && (
+              {!isLoading && paginatedReservations.length > 0 && (
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-gray-500">
-                    Mostrando {startIndex + 1} a {Math.min(startIndex + 10, paginatedReservations.length)} de{" "}
-                    {paginatedReservations.length} reservaciones
+                    Mostrando {startIndex + 1} a{" "}
+                    {Math.min(
+                      startIndex + 10,
+                      paginatedReservations.length
+                    )}{" "}
+                    de {paginatedReservations.length} reservaciones
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -157,7 +187,11 @@ export default function ListadoReservacionesPage() {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages)
+                        )
+                      }
                       disabled={currentPage === totalPages}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -178,8 +212,6 @@ export default function ListadoReservacionesPage() {
           onClose={() => setShowDetailModal(false)}
         />
       )}
-
-
     </div>
   );
 }
