@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react"; // Importa useRef
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { updateHabitaciones, registerHabitaciones } from "@/lib/HabitacionData";
 import { useHabitacion, useCaracteristisca } from "@/hooks/use-habitacion";
@@ -21,19 +21,10 @@ export function useEditarHabitacion() {
   }));
 
   const [username] = useState("USUARIO");
-
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [selectedRoomType, setSelectedRoomType] = useState("");
-
-  const handleEditRoom = (tipo: string, numero: number) => {
-    router.push(`/admin/dashboard/habitaciones/editar?tipo=${tipo}&numero=${numero}`);
-  };
-
-  const habitacionesFiltradasPorTipo = (tipo: string) => {
-    return habitaciones.habitaciones.filter((h) => h.tipo === tipo);
-  };
-
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // <- Se agregó esta línea
 
   const [formData, setFormData] = useState({
     id: "",
@@ -48,49 +39,38 @@ export function useEditarHabitacion() {
   const [filePreview, setFilePreview] = useState("");
   const [imageInputValue, setImageInputValue] = useState("");
 
-  // Usar un ref para controlar si los datos iniciales ya fueron cargados
-  const hasLoadedInitialData = useRef(false); 
+  const hasLoadedInitialData = useRef(false);
 
   useEffect(() => {
-    // Solo cargar datos si hay un número en la URL y las habitaciones están disponibles
     if (numero && habitaciones.habitaciones.length > 0 && !hasLoadedInitialData.current) {
       const habitacion = habitaciones.habitaciones.find((h) => String(h.id) === numero);
-
       if (habitacion) {
         setFormData({
           id: habitacion.id ? String(habitacion.id) : "",
           tarifaDiariaBase: habitacion.tarifaDiariaBase || 0,
           nombreImagen: habitacion.nombreImagen || "",
           caracteristicas: (habitacion.caracteristicas || []).map((c: any) => c.id),
-          numero: habitacion.numero ? String(habitacion.numero) : "", // Establece el número inicial
+          numero: habitacion.numero ? String(habitacion.numero) : "",
           estado: habitacion.estado || "",
           tipo: habitacion.tipo || "",
         });
         setFilePreview(habitacion.nombreImagen || "");
-        setImageInputValue(habitacion.nombreImagen || ""); // También inicializa el input de imagen
-        hasLoadedInitialData.current = true; // Marca que los datos iniciales han sido cargados
+        setImageInputValue(habitacion.nombreImagen || "");
+        hasLoadedInitialData.current = true;
       }
+      setIsLoading(false); // <- Cuando termina de cargar
     }
-  }, [numero, habitaciones.habitaciones]); // Dependencias: numero y habitaciones.habitaciones
-
-
-  // Este useEffect se encargaría de actualizar los datos de la habitación en el listado
-  // después de una operación de guardado exitosa, si fuera necesario para la UI.
-  // Pero el problema de sobrescribir el input se soluciona con el ref.
-  // Podrías tener una función 'refreshHabitaciones' en useHabitacion si necesitas
-  // que el listado global se actualice inmediatamente después de un 'save'.
-
+  }, [numero, habitaciones.habitaciones]);
 
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageInputValue(e.target.value);
   };
 
-    const handleAcceptClick = () => {
-      if (formData.nombreImagen) {
-        setFilePreview(formData.nombreImagen);
-      }
-    };
-
+  const handleAcceptClick = () => {
+    if (formData.nombreImagen) {
+      setFilePreview(formData.nombreImagen);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -120,7 +100,6 @@ export function useEditarHabitacion() {
         caracteristicasIds: formData.caracteristicas.map((id) => Number(id)),
       };
 
-      // Validaciones
       if (!habitacionData.numero || habitacionData.numero <= 0) {
         throw new Error("El número de habitación debe ser un valor válido mayor que cero.");
       }
@@ -140,16 +119,12 @@ export function useEditarHabitacion() {
         throw new Error("La habitación debe tener al menos una característica.");
       }
 
-      if (formData.id) {
-        const success = await updateHabitaciones(habitacionData);
-        if (!success) {
-          throw new Error("La actualización de la habitación falló.");
-        }
-      } else {
-        const success = await registerHabitaciones(habitacionData);
-        if (!success) {
-          throw new Error("El registro de la habitación falló.");
-        }
+      const success = formData.id
+        ? await updateHabitaciones(habitacionData)
+        : await registerHabitaciones(habitacionData);
+
+      if (!success) {
+        throw new Error("Error al guardar los cambios.");
       }
 
       router.push("/admin/dashboard/habitaciones");
@@ -162,6 +137,14 @@ export function useEditarHabitacion() {
     }
   };
 
+  const handleEditRoom = (tipo: string, numero: number) => {
+    router.push(`/admin/dashboard/habitaciones/editar?tipo=${tipo}&numero=${numero}`);
+  };
+
+  const habitacionesFiltradasPorTipo = (tipo: string) => {
+    return habitaciones.habitaciones.filter((h) => h.tipo === tipo);
+  };
+
   const handleBack = () => {
     router.push("/admin/dashboard/habitaciones");
   };
@@ -170,7 +153,6 @@ export function useEditarHabitacion() {
     const tipos: { [key: string]: string } = {
       ESTANDAR: "Estándar",
       JUNIOR: "Junior",
-      // Agrega más tipos si es necesario
     };
     return tipos[tipo] || tipo;
   };
@@ -184,6 +166,7 @@ export function useEditarHabitacion() {
     handleEditRoom,
     habitacionesFiltradasPorTipo,
     isSaving,
+    isLoading, // <- Devuelto aquí
     formData,
     filePreview,
     imageInputValue,
