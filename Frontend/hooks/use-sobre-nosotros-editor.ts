@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react" // Importamos useRef
+import { useState, useEffect, useRef } from "react"
 import { useInformacion } from "@/hooks/use-informacion"
 import { useGaleria } from "@/hooks/use-galeria"
 import { updateInformation } from "@/lib/Informacion"
 import { updateGaleries } from "@/lib/GaleriaData"
 import type { InformacionBase } from "@/types/Informacion"
-import isEqual from "lodash/isEqual"
+import { v4 as uuidv4 } from "uuid"
 
 export interface ImagenGaleria {
-    id?: number | null
+    id?: number | string | null
     descripcion?: string
     nombreImagen: string
 }
@@ -22,7 +22,7 @@ export function useSobreNosotrosEditor() {
     const info = useInformacion()
     const { galerias } = useGaleria()
 
-    const [data, setData] = useState<InformacionConGaleria>({ // Se inicializa con valores por defecto o vacíos
+    const [data, setData] = useState<InformacionConGaleria>({
         id: null,
         textoSobreNosotros: "",
         textoBienvenida: "",
@@ -34,12 +34,9 @@ export function useSobreNosotrosEditor() {
     const [isSaving, setIsSaving] = useState(false)
     const [alert, setAlert] = useState<{ type: string; title: string; message: string } | null>(null)
 
-    // Usamos un ref para saber si los datos ya se han cargado e inicializado por primera vez
     const hasInitialized = useRef(false);
 
     useEffect(() => {
-        // Solo inicializamos data si 'info' y 'galerias' están disponibles
-        // y si aún no hemos inicializado los datos.
         if (info && info.id && galerias && !hasInitialized.current) {
             const initialData: InformacionConGaleria = {
                 id: info.id,
@@ -48,35 +45,33 @@ export function useSobreNosotrosEditor() {
                 nombre: info.nombre ?? "",
                 nombreImagenBienvenida: info.nombreImagenBienvenida ?? "",
                 imagenesGaleria: galerias.map(g => ({
-                    id: g.id ?? null,
+                    id: g.id ?? uuidv4(),
                     nombreImagen: g.nombreImagen ?? "",
                     descripcion: g.descripcion ?? "",
                 })),
             };
             setData(initialData);
-            hasInitialized.current = true; // Marcamos que los datos ya fueron inicializados
+            hasInitialized.current = true;
         }
-    }, [info, galerias]); // Dependencias: info y galerias
+    }, [info, galerias]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         const { name, value } = e.target;
-        // Asegúrate de que 'data' no sea null antes de intentar actualizarlo
         if (data) {
-            setData(prev => ({ ...prev, [name]: value }));
+            setData(prev => ({ ...prev!, [name]: value }));
         }
     }
 
     const handleImageChange = (field: keyof InformacionBase, url: string) => {
-        // Asegúrate de que 'data' no sea null antes de intentar actualizarlo
         if (data) {
-            setData(prev => ({ ...prev, [field]: url }));
+            setData(prev => ({ ...prev!, [field]: url }));
         }
     }
 
     const handleSave = async () => {
-        if (!data) { // Si data es null, no podemos guardar
+        if (!data) {
             setAlert({
                 type: "error",
                 title: "Error",
@@ -85,7 +80,6 @@ export function useSobreNosotrosEditor() {
             return;
         }
 
-        // Validaciones:
         if (!data.textoSobreNosotros || data.textoSobreNosotros.trim() === "") {
             setAlert({
                 type: "error",
@@ -110,8 +104,29 @@ export function useSobreNosotrosEditor() {
 
         try {
             await updateInformation(data)
-            const { imagenesGaleria } = data
-            await updateGaleries(imagenesGaleria)
+
+            const imagesToSendToBackend = data.imagenesGaleria.map(img => {
+                return {
+                    id: typeof img.id === 'string' ? null : img.id,
+                    nombreImagen: img.nombreImagen,
+                    descripcion: img.descripcion,
+                };
+            });
+
+            const updatedGaleriesResponse = await updateGaleries(imagesToSendToBackend);
+
+            setData(prev => ({
+                ...prev!,
+                imagenesGaleria: prev!.imagenesGaleria.map(img => {
+                    const savedImage = updatedGaleriesResponse.find(
+                        (g: any) => g.nombreImagen === img.nombreImagen && g.descripcion === img.descripcion
+                    );
+                    return savedImage && typeof savedImage.id === 'number'
+                        ? { ...img, id: savedImage.id }
+                        : img;
+                }),
+            }));
+
             await new Promise(resolve => setTimeout(resolve, 1500))
             setAlert({
                 type: "success",
@@ -131,21 +146,21 @@ export function useSobreNosotrosEditor() {
     }
 
     const handleAddImage = () => {
-        if (!data) return; // No añadir si data es null
+        if (!data) return;
         const nueva: ImagenGaleria = {
-            id: Date.now(), // Usamos Date.now() para un ID único temporal
+            id: uuidv4(),
             nombreImagen: "/placeholder.svg?height=200&width=300",
             descripcion: "",
         }
         setData(prev => ({
-            ...prev!, // Usamos '!' porque ya verificamos que 'prev' no es null
+            ...prev!,
             imagenesGaleria: [...prev!.imagenesGaleria, nueva],
         }))
         setAlert(null);
     }
 
-    const handleRemoveImage = (id: number | null | undefined) => {
-        if (!data) return; // No eliminar si data es null
+    const handleRemoveImage = (id: number | string | null | undefined) => {
+        if (!data) return;
         setData(prev => ({
             ...prev!,
             imagenesGaleria: prev!.imagenesGaleria.filter(img => img.id !== id),
@@ -153,8 +168,8 @@ export function useSobreNosotrosEditor() {
         setAlert(null);
     }
 
-    const handleImageTitleChange = (id: number | null | undefined, titulo: string) => {
-        if (!data) return; // No cambiar si data es null
+    const handleImageTitleChange = (id: number | string | null | undefined, titulo: string) => {
+        if (!data) return;
         setData(prev => ({
             ...prev!,
             imagenesGaleria: prev!.imagenesGaleria.map(img =>
@@ -163,8 +178,8 @@ export function useSobreNosotrosEditor() {
         }))
     }
 
-    const handleImageUrlChange = (id: number | null | undefined, url: string) => {
-        if (!data) return; // No cambiar si data es null
+    const handleImageUrlChange = (id: number | string | null | undefined, url: string) => {
+        if (!data) return;
         setData(prev => ({
             ...prev!,
             imagenesGaleria: prev!.imagenesGaleria.map(img =>
@@ -173,8 +188,8 @@ export function useSobreNosotrosEditor() {
         }))
     }
 
-    const moveImage = (id: number | null | undefined, direction: "up" | "down") => {
-        if (!data) return; // No mover si data es null
+    const moveImage = (id: number | string | null | undefined, direction: "up" | "down") => {
+        if (!data) return;
         const index = data.imagenesGaleria.findIndex(img => img.id === id)
         if (
             index === -1 ||
