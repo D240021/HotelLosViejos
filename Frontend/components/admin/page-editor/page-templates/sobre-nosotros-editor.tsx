@@ -31,7 +31,6 @@ export function SobreNosotrosEditor() {
 
   return (
     <div className="space-y-6">
-      {/* 2. Mensajes de alerta */}
       {alert && (
         <AlertMessage
           type={alert.type}
@@ -92,7 +91,6 @@ export function SobreNosotrosEditor() {
           <div className="space-y-4">
             {data.imagenesGaleria.map((img, idx) => (
               <div key={img.id ?? idx} className="border rounded-md p-4 relative">
-                {/* Acciones */}
                 <div className="absolute top-2 right-2 flex space-x-1">
                   <Button
                     variant="ghost"
@@ -120,7 +118,6 @@ export function SobreNosotrosEditor() {
                   </Button>
                 </div>
 
-                {/* Campos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div className="space-y-3 md:col-span-2">
                     <div>
