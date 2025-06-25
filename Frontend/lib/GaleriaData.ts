@@ -27,3 +27,4 @@ export async function updateGaleries(galeria: ImagenGaleria[]) {
 
     return response.json() as Promise<GaleriaBase>;
 }
+
