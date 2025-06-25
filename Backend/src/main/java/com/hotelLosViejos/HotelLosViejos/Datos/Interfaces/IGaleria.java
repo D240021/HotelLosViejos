@@ -11,7 +11,7 @@ public interface IGaleria {
 
     public List<Galeria> obtenerGalerias();
 
-    public boolean actualizarGalerias(List<Galeria> galeria);
+    public List<Galeria> actualizarGalerias(List<Galeria> galeria);
 
     public boolean eliminarGaleria(int idGaleria);
 }

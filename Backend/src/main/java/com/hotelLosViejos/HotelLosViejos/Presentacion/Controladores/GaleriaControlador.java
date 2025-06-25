@@ -41,11 +41,11 @@ public class GaleriaControlador {
     }
 
     @PutMapping
-    public ResponseEntity<Boolean> actualizarGaleria( @RequestBody List<GaleriaActualizacionDTO> galeriaActualizacionDTO){
+    public ResponseEntity<List<GaleriaLecturaDTO>> actualizarGaleria( @RequestBody List<GaleriaActualizacionDTO> galeriaActualizacionDTO){
 
         List<Galeria> galeria = GaleriaMapperDTO.convertirGaleriasActualizacionDTOAGalerias(galeriaActualizacionDTO);
 
-        return ResponseEntity.ok(this.iGaleria.actualizarGalerias(galeria));
+        return ResponseEntity.ok(GaleriaMapperDTO.convertirGaleriasAGaleriasLecturaDTO(this.iGaleria.actualizarGalerias(galeria)));
 
     }
 
