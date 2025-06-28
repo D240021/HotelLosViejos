@@ -28,21 +28,30 @@ public class ReservaServicio implements IReserva {
 
     @Autowired
     private final ReservaRepositorio reservaRepositorio;
+    @Autowired
+    private HabitacionServicio habitacionServicio;
 
-    public ReservaServicio(ReservaRepositorio reservaRepositorio) {
+    @Autowired
+    public ReservaServicio(ReservaRepositorio reservaRepositorio, HabitacionServicio habitacionServicio) {
         this.reservaRepositorio = reservaRepositorio;
+        this.habitacionServicio = habitacionServicio;
     }
 
     @Override
+    @Transactional
     public boolean registrarReserva(Reserva reserva) {
 
         if (!estaDisponible(reserva.getHabitacion(), reserva.getFechaLlegada(), reserva.getFechaSalida())) {
-            throw new ReservaExcepcion("Habitacion no disponible");
+            throw new ReservaExcepcion("Habitación no disponible");
         }
 
         this.reservaRepositorio.save(reserva);
+
+        habitacionServicio.actualizarEstadoHabitacion(reserva.getHabitacion().getId(), Habitacion.EstadoHabitacion.OCUPADA);
+
         return true;
     }
+
 
     @Modifying
     @Transactional
@@ -93,6 +102,13 @@ public class ReservaServicio implements IReserva {
 
     @Override
     public boolean estaDisponible(Habitacion habitacion, LocalDateTime llegada, LocalDateTime salida, int idActual) {
+
+        // Verificar estado de la habitación
+        if (habitacion.getEstado() == Habitacion.EstadoHabitacion.DESHABILITADA) {
+            return false;
+        }
+
+        // Verificar fechas de reservas existentes
         List<Reserva> reservas = reservaRepositorio.findByHabitacion(habitacion);
 
         for (Reserva r : reservas) {
@@ -101,12 +117,15 @@ public class ReservaServicio implements IReserva {
             LocalDateTime existenteInicio = r.getFechaLlegada();
             LocalDateTime existenteFin = r.getFechaSalida();
 
-            if (!(salida.isBefore(existenteInicio) || llegada.isAfter(existenteFin))) {
+            // Permitir solo si la nueva reserva termina antes o empieza después SIN solapamiento
+            if (!(salida.isBefore(existenteInicio) || llegada.isAfter(existenteFin) || llegada.equals(existenteFin))) {
                 return false;
             }
         }
+
         return true;
     }
+
 
     private ByteArrayOutputStream obtenerEstilosPDFReserva(Reserva reservaEncontrada) {
 
@@ -174,6 +193,5 @@ public class ReservaServicio implements IReserva {
         return salida.toByteArray();
 
     }
-
 
 }
