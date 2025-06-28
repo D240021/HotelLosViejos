@@ -14,6 +14,10 @@ export async function registrarReservaCompleta(payload: ReservaPayload) {
     throw new Error("Habitacion no disponible")
   }
 
+  if (response.status === 410) {
+    throw new Error("La habitacion se encuentra deshabilitada")
+  }
+
   if (!response.ok) {
     throw new Error("Error al registrar la reserva")
   }

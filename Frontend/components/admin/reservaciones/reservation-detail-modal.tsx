@@ -36,7 +36,7 @@ export function ReservationDetailModal({
                 <h3 className="text-sm font-medium text-gray-500 mb-1">Habitación</h3>
                 <div className="flex items-center gap-2">
                   <Tag className="h-4 w-4 text-gray-400" />
-                  <p>{reservation.habitacion.tipo}</p>
+                  <p>{reservation.habitacion.tipo} #{reservation.habitacion.numero}</p>
                 </div>
               </div>
             </div>

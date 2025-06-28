@@ -4,6 +4,7 @@ import com.hotelLosViejos.HotelLosViejos.Datos.Interfaces.IReserva;
 import com.hotelLosViejos.HotelLosViejos.Datos.Repositorios.ReservaRepositorio;
 import com.hotelLosViejos.HotelLosViejos.Dominio.Habitacion;
 import com.hotelLosViejos.HotelLosViejos.Dominio.Reserva;
+import com.hotelLosViejos.HotelLosViejos.Infraestructura.Excepciones.HabitacionDeshabilitadaExcepcion;
 import com.hotelLosViejos.HotelLosViejos.Infraestructura.Excepciones.ReservaExcepcion;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.draw.LineSeparator;
@@ -41,7 +42,16 @@ public class ReservaServicio implements IReserva {
     @Transactional
     public boolean registrarReserva(Reserva reserva) {
 
-        if (!estaDisponible(reserva.getHabitacion(), reserva.getFechaLlegada(), reserva.getFechaSalida())) {
+        Habitacion habitacion = reserva.getHabitacion();
+
+        // Validar si está deshabilitada
+        if (habitacion.getEstado() == Habitacion.EstadoHabitacion.DESHABILITADA) {
+            throw new HabitacionDeshabilitadaExcepcion("La habitacion se encuentra deshabilitada");
+        }
+
+        // Validar solapamientos
+        boolean disponible = estaDisponible(habitacion, reserva.getFechaLlegada(), reserva.getFechaSalida(), -1);
+        if (!disponible) {
             throw new ReservaExcepcion("Habitación no disponible");
         }
 
