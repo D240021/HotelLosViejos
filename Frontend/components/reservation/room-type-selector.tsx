@@ -26,8 +26,9 @@ export function RoomTypeSelector({ roomType, onRoomTypeChange, habitaciones }: R
               value={habitacion.id.toString()}
               className={habitacion.tipo === "ESTANDAR" ? "bg-teal-50" : ""}
             >
-              {habitacion.tipo === "ESTANDAR" ? "Habitación Standard" : "Suite Junior"} - ${habitacion.tarifaDiariaBase}
-              /noche
+              #{habitacion.numero} -{" "}
+              {habitacion.tipo === "ESTANDAR" ? "Habitación Standard" : "Suite Junior"} - $
+              {habitacion.tarifaDiariaBase}/noche
             </SelectItem>
           ))}
         </SelectContent>
@@ -35,4 +36,3 @@ export function RoomTypeSelector({ roomType, onRoomTypeChange, habitaciones }: R
     </div>
   )
 }
-
