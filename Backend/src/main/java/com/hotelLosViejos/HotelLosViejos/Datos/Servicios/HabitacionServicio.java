@@ -82,4 +82,16 @@ public class HabitacionServicio implements IHabitacion {
             return false;
         }
     }
+
+    @Transactional
+    public boolean actualizarEstadoHabitacion(int idHabitacion, Habitacion.EstadoHabitacion nuevoEstado) {
+        Habitacion habitacion = habitacionRepositorio.findById(idHabitacion)
+                .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
+
+        habitacion.setEstado(nuevoEstado);
+        habitacionRepositorio.save(habitacion);
+
+        return true;
+    }
+
 }

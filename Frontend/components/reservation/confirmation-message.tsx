@@ -26,7 +26,7 @@ export function ConfirmationMessage({ idReserva }: ConfirmationMessageProps) {
         <div className="border-y py-4 space-y-2 text-sm text-gray-700">
           <div className="flex justify-between">
             <span>Nombre del Cliente:</span>
-            <span className="font-medium">{reserva.clienteNombre}</span>
+            <span className="font-medium">{reserva.cliente.nombre} {reserva.cliente.apellidos}</span>
           </div>
           <div className="flex justify-between">
             <span>Número de Reservación:</span>
@@ -42,7 +42,7 @@ export function ConfirmationMessage({ idReserva }: ConfirmationMessageProps) {
           </div>
           <div className="flex justify-between">
             <span>Habitación asignada:</span>
-            <span>#{reserva.habitacionId}</span>
+            <span>#{reserva.habitacion.numero}</span>
           </div>
         </div>
 
